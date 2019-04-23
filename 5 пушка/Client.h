@@ -2,6 +2,7 @@
 #include <ctime>
 #include <iostream>
 #include <ratio>
+#include <chrono>
 
 
 class Client
@@ -9,11 +10,13 @@ class Client
 private:
 	int operationNumber;
 	int suboperationNumber;
+	std::chrono::steady_clock::time_point t;
 
 public:
 	Client() {
 		operationNumber = 1 + rand() % 4;
 		suboperationNumber = 1 + rand() % 2;
+		t = std::chrono::steady_clock::now();
 	}
 
 	Client(int number) {
@@ -42,6 +45,10 @@ public:
 
 	int getSuboperationNumber() {
 		return suboperationNumber;
+	}
+
+	std::chrono::steady_clock::time_point getTime() {
+		return t;
 	}
 
 	~Client() {};
