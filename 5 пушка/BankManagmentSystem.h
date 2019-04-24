@@ -16,5 +16,5 @@ public:
 	static void processClients();
 
 	static void chooseOperator(Client* client);
-	static void Work(std::queue<Client*> *);
+	static void Work(std::queue<Client*> *, int);
 };

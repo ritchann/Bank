@@ -1,7 +1,6 @@
 #include "BankManagmentSystem.h"
 
 std::mutex mutex;
-std::mutex mutex1;
 
 std::condition_variable cond1;
 std::condition_variable cond2;
@@ -15,6 +14,10 @@ std::queue<Client*> * queue4;
 
 int maximum_capacity = 5;
 int capacity = 10;
+int hours[30] = { 10,10,10,9,9,9,8,8,8,7,7,7,6,6,6,5,5,5,4,4,4,3,3,3,2,2,2,1,1,1 };
+
+std::chrono::duration<double> middleTime_value;
+int middleTime_count;
 
 std::chrono::duration<double> time_span;
 
@@ -24,13 +27,19 @@ void BankManagmentSystem::start() {
 	queue3 = new std::queue<Client*>;
 	queue4 = new std::queue<Client*>;
 
+	int stage1 = 1 + rand() % 30;
+	int stage2 = 1 + rand() % 30;
+	int stage3 = 1 + rand() % 30;
+	int stage4 = 1 + rand() % 30;
+
 	std::thread Client(generateClients);
 	std::thread Operator(processClients);
 
-	std::thread Operator1(Work, std::ref(queue1)); // основной не профи (операция 2,2 и 4,4 для профи, остальные не для профи)
-	std::thread Operator2(Work, std::ref(queue2)); // основной профи
-	std::thread Operator3(Work, std::ref(queue3)); // неосновной не профи
-	std::thread Operator4(Work, std::ref(queue4)); // неосновной профи
+	std::thread Operator1(Work, std::ref(queue1), stage1); 
+	std::thread Operator2(Work, std::ref(queue2), stage2); 
+	std::thread Operator3(Work, std::ref(queue3), stage3); 
+	std::thread Operator4(Work, std::ref(queue4), stage4); 
+
 
 	Client.join();
 	Operator.join();
@@ -44,7 +53,7 @@ void BankManagmentSystem::start() {
 
 void BankManagmentSystem::generateClients() {
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(2500 + rand() % 10000));
 		std::unique_lock<std::mutex> mlock(mutex); 
 		while (queue.size() == capacity) { cond2.wait(mlock); }
 		Client* client = new Client();
@@ -73,7 +82,7 @@ void BankManagmentSystem::processClients() {
 	}
 }
 
-void BankManagmentSystem::Work(std::queue<Client*> * q) {
+void BankManagmentSystem::Work(std::queue<Client*> * q, int stage) {
 	while (true) {
 		while (q->empty()) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -87,22 +96,32 @@ void BankManagmentSystem::Work(std::queue<Client*> * q) {
 		switch (client->getOperationNumber()) {
 		case 1:
 			time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+			std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 			break;
 		case 2:
 			switch (client->getSuboperationNumber())
 			{
 			case 1:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			case 2:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			default:
 				break;
@@ -113,15 +132,25 @@ void BankManagmentSystem::Work(std::queue<Client*> * q) {
 			{
 			case 1:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			case 2:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			default:
 				break;
@@ -132,15 +161,25 @@ void BankManagmentSystem::Work(std::queue<Client*> * q) {
 			{
 			case 1:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			case 2:
 				time_span = std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::steady_clock::now() - client->getTime());
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				std::this_thread::sleep_for(std::chrono::milliseconds(hours[stage - 1]));
 				std::cout << "Customer's operation number " << client->getOperationNumber() << " " << client->getSuboperationNumber() <<
 					" finished processing with waiting time " << time_span.count() << " seconds" << std::endl;
+				std::cout << std::endl;
+				middleTime_value = middleTime_value + time_span;
+				middleTime_count += 1;
+				std::cout << "SUM WAITING TIME: " << middleTime_value.count() / middleTime_count << std::endl;
+				std::cout << std::endl;
 				break;
 			default:
 				break;
